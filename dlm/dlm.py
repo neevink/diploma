@@ -16,7 +16,7 @@ DELETE_LOCK_COMMAND_NUMKEYS = 1
 
 EXTEND_LOCK_COMMAND = '''
 if redis.call("GET", KEYS[1]) == ARGV[1] then
-    return redis.call("EXPIRE", KEYS[1], ARGV[2])
+    return redis.call("PEXPIRE", KEYS[1], ARGV[2])
 else
     return 0
 end
@@ -46,7 +46,7 @@ class DistributedLockManager:
         for instance in self.redis_instances:
             DistributedLockManager._unlock_on_instance(instance, lock.resource_id, lock.unique_lock_id)
 
-    def extend(self, lock: Lock, new_rent_time_ms: int) -> bool:
+    def extend(self, lock: Lock, new_rent_time_ms: int) -> Lock:
         for instance in self.redis_instances:
             DistributedLockManager._extend_on_instance(
                 instance,
@@ -54,6 +54,7 @@ class DistributedLockManager:
                 lock.unique_lock_id,
                 new_rent_time_ms
             )
+        return Lock(lock.resource_id, lock.unique_lock_id, new_rent_time_ms)
 
     @staticmethod
     def _lock_on_instance(redis_instance: StrictRedis, resource_id: str, client_id: str, rent_time_ms: int) -> bool:
