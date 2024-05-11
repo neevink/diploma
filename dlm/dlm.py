@@ -1,7 +1,6 @@
-from time import time, sleep
+from time import time
 
 from redis import Redis, RedisError
-
 from redis.exceptions import ConnectionError as RedisConnectionError
 
 from exceptions import ResourceAlreadyLockedException, WrongUniqueLockIdException, ResourceLockException
@@ -81,12 +80,14 @@ class DistributedLockManager:
         start_time = int(time() * 1000)
         for instance in self.redis_instances:
             try:
-                DistributedLockManager._extend_on_instance(
+                changed_rows_count = DistributedLockManager._extend_on_instance(
                     instance,
                     lock.resource_id,
                     lock.unique_lock_id,
                     new_rent_time_ms
                 )
+                if changed_rows_count != 1:
+                    errors.append(WrongUniqueLockIdException(lock.unique_lock_id))
             except RedisConnectionError as exc:
                 errors.append(exc)
         elapsed_time = int(time() * 1000) - start_time
@@ -106,7 +107,7 @@ class DistributedLockManager:
         return redis_instance.eval(DELETE_LOCK_COMMAND, DELETE_LOCK_COMMAND_NUMKEYS, resource_id, unique_lock_id)
 
     @staticmethod
-    def _extend_on_instance(redis_instance: Redis, resource_id: str, unique_lock_id: str, new_rent_time_ms: int):
+    def _extend_on_instance(redis_instance: Redis, resource_id: str, unique_lock_id: str, new_rent_time_ms: int) -> str:
         return redis_instance.eval(
             EXTEND_LOCK_COMMAND,
             EXTEND_LOCK_COMMAND_NUMKEYS,
