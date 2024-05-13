@@ -104,7 +104,12 @@ class DistributedLockManager:
 
     @staticmethod
     def _unlock_on_instance(redis_instance: Redis, resource_id: str, unique_lock_id: str) -> str:
-        return redis_instance.eval(DELETE_LOCK_COMMAND, DELETE_LOCK_COMMAND_NUMKEYS, resource_id, unique_lock_id)
+        return redis_instance.eval(
+            DELETE_LOCK_COMMAND,
+            DELETE_LOCK_COMMAND_NUMKEYS,
+            resource_id,
+            unique_lock_id,
+        )
 
     @staticmethod
     def _extend_on_instance(redis_instance: Redis, resource_id: str, unique_lock_id: str, new_rent_time_ms: int) -> str:
@@ -113,5 +118,5 @@ class DistributedLockManager:
             EXTEND_LOCK_COMMAND_NUMKEYS,
             resource_id,
             unique_lock_id,
-            str(new_rent_time_ms)
+            str(new_rent_time_ms),
         )
