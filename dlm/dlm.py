@@ -102,7 +102,7 @@ class DistributedLockManager:
     def _lock_on_instance(redis_instance: Redis, resource_id: str, client_id: str, rent_time_ms: int) -> bool:
         return redis_instance.set(resource_id, client_id, nx=True, px=rent_time_ms)
 
-    @staticmethodgit
+    @staticmethod
     def _unlock_on_instance(redis_instance: Redis, resource_id: str, unique_lock_id: str) -> str:
         return redis_instance.eval(
             DELETE_LOCK_COMMAND,
