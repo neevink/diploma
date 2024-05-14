@@ -30,7 +30,11 @@ def test_exception_on_acquired_lock(dlm):
     with pytest.raises(ResourceLockException) as exc:
         _ = dlm.lock("test-resource-2", 10)
     assert len(exc.value.errors) == 1
-    assert exc.value == ResourceLockException([ResourceAlreadyLockedException()])
+    assert exc.value == ResourceLockException(
+        [
+            ResourceAlreadyLockedException(),
+        ]
+    )
     dlm.unlock(lock)
 
 
@@ -53,7 +57,11 @@ def test_unlock_with_wrong_unique_lock_id(dlm):
             0,
         ))
     assert len(exc.value.errors) == 1
-    assert exc.value == ResourceLockException([WrongUniqueLockIdException("wrong-unique-lock-id")])
+    assert exc.value == ResourceLockException(
+        [
+            WrongUniqueLockIdException("wrong-unique-lock-id")
+        ]
+    )
     dlm.unlock(lock)
 
 
